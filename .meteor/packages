@@ -5,8 +5,8 @@
 
 standard-app-packages
 bootstrap
-iron-router
 spin
 coffeescript
 accounts-password
 accounts-ui
+iron-router

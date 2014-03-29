@@ -17,8 +17,11 @@ Router.map ->
 
 requireLogin = ->
   unless Meteor.user()
-    @pause
-    @render 'accessDenied'
+    if Meteor.loggingIn()
+      @render @loadingTemplate
+    else
+      @render "accessDenied"
+    @pause()
 
 Router.onBeforeAction requireLogin,
   only: "postSubmit"
