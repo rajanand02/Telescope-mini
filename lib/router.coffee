@@ -14,3 +14,11 @@ Router.map ->
   
   @route 'postSubmit',
     path: '/submit'
+
+requireLogin = ->
+  unless Meteor.user()
+    @pause
+    @render 'accessDenied'
+
+Router.onBeforeAction requireLogin,
+  only: "postSubmit"
