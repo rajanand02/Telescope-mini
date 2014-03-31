@@ -5,5 +5,8 @@ Template.postSubmit.events "submit form": (e) ->
     title: $(e.target).find("[name=title]").val()
     message: $(e.target).find("[name=message]").val()
 
-  post._id = Posts.insert(post)
-  Router.go "postPage", post
+  Meteor.call "post", post, (error, id) ->
+    alert(error.reason)  if error
+    Router.go "postPage",
+      _id: id
+
