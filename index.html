@@ -1,166 +1,125 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>SimpleWebRTC Demo</title>
-    </head>
-    <body>
-        <h1 id="title">Start a room</h1>
-        <style>
-            .videoContainer {
-                position: relative;
-                width: 200px;
-                height: 150px;
-            }
-            .videoContainer video {
-                position: absolute;
-                width: 100%;
-                height: 100%;
-            }
-            .volume_bar {
-                position: absolute;
-                width: 5px;
-                height: 0px;
-                right: 0px;
-                bottom: 0px;
-                background-color: #12acef;
-            }
-        </style>
-        <button id="screenShareButton"></button>
-        <p id="subTitle">(https required for screensaring to work)</p>
-        <form id="createRoom">
-            <input id="sessionInput"/>
-            <button type="submit">Create it!</button>
-        </form>
-        <div class="videoContainer">
-            <video id="localVideo" style="height: 150px;" oncontextmenu="return false;"></video>
-            <div id="localVolume" class="volume_bar"></div>
-        </div>
-        <div id="remotes"></div>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
-        <script src="latest.js"></script>
-        <script>
-            // grab the room from the URL
-            var room = location.search && location.search.split('?')[1];
+<html lang="en">
 
-            // create our webrtc connection
-            var webrtc = new SimpleWebRTC({
-                // the id/element dom element that will hold "our" video
-                localVideoEl: 'localVideo',
-                // the id/element dom element that will hold remote videos
-                remoteVideosEl: '',
-                // immediately ask for camera access
-                autoRequestMedia: true,
-                debug: false,
-                detectSpeakingEvents: true,
-                autoAdjustMic: false
-            });
+  <head>
+    <title>SimpleWebRTC.js </title>
 
-            // when it's ready, join if we got a room from the URL
-            webrtc.on('readyToCall', function () {
-                // you can name it anything
-                if (room) webrtc.joinRoom(room);
-            });
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="WebRTC, SimpleWebRTC, Talky, Talky.io, library, JavaScript, Node.js">
 
-            function showVolume(el, volume) {
-                if (!el) return;
-                if (volume < -45) { // vary between -45 and -20
-                    el.style.height = '0px';
-                } else if (volume > -20) {
-                    el.style.height = '100%';
-                } else {
-                    el.style.height = '' + Math.floor((volume + 100) * 100 / 25 - 220) + '%';
-                }
-            }
-            webrtc.on('channelMessage', function (peer, label, data) {
-                if (data.type == 'volume') {
-                    showVolume(document.getElementById('volume_' + peer.id), data.volume);
-                }
-            });
-            webrtc.on('videoAdded', function (video, peer) {
-                console.log('video added', peer);
-                var remotes = document.getElementById('remotes');
-                if (remotes) {
-                    var d = document.createElement('div');
-                    d.className = 'videoContainer';
-                    d.id = 'container_' + webrtc.getDomId(peer);
-                    d.appendChild(video);
-                    var vol = document.createElement('div');
-                    vol.id = 'volume_' + peer.id;
-                    vol.className = 'volume_bar';
-                    video.onclick = function () {
-                        video.style.width = video.videoWidth + 'px';
-                        video.style.height = video.videoHeight + 'px';
-                    };
-                    d.appendChild(vol);
-                    remotes.appendChild(d);
-                }
-            });
-            webrtc.on('videoRemoved', function (video, peer) {
-                console.log('video removed ', peer);
-                var remotes = document.getElementById('remotes');
-                var el = document.getElementById('container_' + webrtc.getDomId(peer));
-                if (remotes && el) {
-                    remotes.removeChild(el);
-                }
-            });
-            webrtc.on('volumeChange', function (volume, treshold) {
-                //console.log('own volume', volume);
-                showVolume(document.getElementById('localVolume'), volume);
-            });
+    <link rel="stylesheet" type="text/css" href="//cloud.typography.com/7773252/764742/css/fonts.css" />
+    <link rel="stylesheet" href="css/style.min.css">
 
-            // Since we use this twice we put it here
-            function setRoom(name) {
-                $('form').remove();
-                $('h1').text(name);
-                $('#subTitle').text('Link to join: ' + location.href);
-                $('body').addClass('active');
-            }
+    <link rel="icon" type="image/png" href="img/favicon.png">
+  </head>
 
-            if (room) {
-                setRoom(room);
-            } else {
-                $('form').submit(function () {
-                    var val = $('#sessionInput').val().toLowerCase().replace(/\s/g, '-').replace(/[^A-Za-z0-9_\-]/g, '');
-                    webrtc.createRoom(val, function (err, name) {
-                        console.log(' create room cb', arguments);
-                    
-                        var newUrl = location.pathname + '?' + name;
-                        if (!err) {
-                            history.replaceState({foo: 'bar'}, null, newUrl);
-                            setRoom(name);
-                        } else {
-                            console.log(err);
-                        }
-                    });
-                    return false;          
-                });
-            }
+  <body>
+    <div class="content" role="main">
+      <div class="github-fork">
+        <a href="https://github.com/HenrikJoreteg/SimpleWebRTC" class="button" alt="Fork me on Github">Fork me on Github</a>
+      </div>
 
-            var button = $('#screenShareButton'),
-                setButton = function (bool) {
-                    button.text(bool ? 'share screen' : 'stop sharing');
-                };
-            webrtc.on('localScreenRemoved', function () {
-                setButton(true);
-            });
+      <section>
+        <h1 class="logo"><span>simple</span><span>WebRTC</span></h1>
+        <h2>You can build cool stuff with WebRTC in five minutes.</h2>
 
-            setButton(true);
+        <p>Want to see what this library can do? <a href="https://talky.io">Talky.io</a> is powered by SimpleWebRTC!</p>
 
-            button.click(function () {
-                if (webrtc.getLocalScreen()) {
-                    webrtc.stopScreenShare();
-                    setButton(true);
-                } else {
-                    webrtc.shareScreen(function (err) {
-                        if (err) {
-                            setButton(true);
-                        } else {
-                            setButton(false);
-                        }
-                    });
-                    
-                }
-            });
-        </script>
-    </body>
+        <p>Or checkout the <a href="demo.html">demo</a> (note that screensharing won't work because HTTPS is required.)</p>
+
+        <div class="intro">
+        <h3>A dab of HTML</h3>
+
+        <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;script src=&quot;http://simplewebrtc.com/latest.js&quot;&gt;&lt;/script&gt; 
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;video height=&quot;300&quot; id=&quot;localVideo&quot;&gt;&lt;/video&gt;
+        &lt;div id=&quot;remotesVideos&quot;&gt;&lt;/div&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+
+        <h3>Stir in the WebRTC object</h3>
+        <pre><code>var webrtc = new SimpleWebRTC({
+// the id/element dom element that will hold "our" video
+localVideoEl: 'localVideo',
+// the id/element dom element that will hold remote videos
+remoteVideosEl: 'remotesVideos',
+// immediately ask for camera access
+autoRequestMedia: true
+});</code></pre>
+
+        <h3>And join when ready</h3>
+        <pre><code>// we have to wait until it's ready
+webrtc.on('readyToCall', function () {
+  // you can name it anything
+  webrtc.joinRoom('your awesome room name');
+});</code></pre>
+
+      </section>
+      <section>
+        <h3>Need More Control?</h3>
+
+        <p>In order to make WebRTC as approachable as possible, SimpleWebRTC assumes a lot about the type of app you want to build.</p>
+
+        <p>It's unlikely that if you're going to ship an app that uses WebRTC SimpleWebRTC will have <em>the exact</em> features you want. Likely you'll want to use bits and pieces of it. Well, you're in luck! SimpleWebRTC is actually comprised of a whole bunch of independent little modules to help you:</p>
+
+        <ul>
+          <li><a href="https://github.com/andyet/signalmaster">Signalmaster</a> &mdash; Simple node.js/socket.io powered signaling server.</li>
+          <li><a href="https://github.com/henrikjoreteg/webrtc.js">webrtc.js</a> &mdash; Wraps/normalizes webrtc between browsers and manages multiple peer connections. It's completely signaling agnostic, so it's much more customizable than using SimpleWebRTC directly.</li>
+          <li><a href="https://github.com/henrikjoreteg/rtcpeerconnection">RTCPeerConnection</a> &mdash; Wraps/normalizes peer connections.</li>
+          <li><a href="https://github.com/HenrikJoreteg/getUserMedia">getUserMedia</a> &mdash; Wraps/normalizes getting access to user's camera/mic.</li>
+          <li><a href="https://github.com/HenrikJoreteg/attachMediaStream">attachMediaStream</a> &mdash; Normalizes adding streams to video tags and handles muting/mirroring in one simple API.</li>
+          <li><a href="https://github.com/HenrikJoreteg/webrtcsupport">webrtcsupport</a> &mdash; For checking browser capability and grabbing appropriate constructors for stuff like RTCPeerConnection and RTCSessionDescription as well as checking support for data channels, etc.</li>
+          <li><a href="https://github.com/HenrikJoreteg/getScreenMedia">getScreenMedia</a> &mdash; Extends getUserMedia but for getting access to screen media for screensharing.</li>
+          <li><a href="https://github.com/HenrikJoreteg/mediastream-gain">mediastream-gain</a> &mdash; Gives you a simple audio input volume controller.</li>
+          <li><a href="https://github.com/latentflip/hark">hark</a> &mdash; Detect who's speaking using the Web Audio API.</li>
+          <li><a href="https://github.com/HenrikJoreteg/wildemitter">WildEmitter</a> &mdash; Slick, minimalist EventEmitter with support for wildcards.</li>
+        </ul>
+
+      </section> 
+      <section>
+
+        <h3>More Info</h3>
+
+        <p>For news/updates follow <a href="http://twitter.com/henrikjoreteg">@HenrikJoreteg</a>, <a href="http://twitter.com/andyet">@andyet</a>, and <a href="http://twitter.com/usetalky">@usetalky</a>. </p>
+
+        <p>Also, don't forget to try <a href="https://talky.io">Talky</a> for zero-setup meetings powered by WebRTC.</p>
+
+        <p>Henrik's also written a book about modern clientside apps to help you build a well-structured, maintainable app to contain your WebRTC experience. The approaches it describes were used to build <a href="https://talky.io">Talky</a>, <a href="https://andbang.com">And Bang</a>, and many similar apps. Check out the book: <a href="http://humanjavascript.com">Human JavaScript</a>.</p>
+
+        <h3>Signaling server</h3>
+
+        <p>SimpleWebRTC uses the SimpleWebRTC.com sandbox server and is only for development and testing purposes.</p>
+
+        <p>The signaling server is open source (MIT) licensed as well. You can find it here: <a href="https://github.com/andyet/signalmaster">github.com/andyet/signalmaster</a></p>
+
+      </section>
+      <section>
+
+        <h3>Need Help?</h3>
+
+        <p>Join the <a href='http://lists.andyet.com/mailman/listinfo/simplewebrtc'>SimpleWebRTC discussion list</a> if you have questions.</p>
+
+        <p>Have a look around in the <a href="https://github.com/HenrikJoreteg/SimpleWebRTC/issues">issues</a> to see if your question has been answered.</p>
+        
+        <p>Also, at <a href="http://andyet.com">&amp;yet</a> we offer WebRTC consulting to help you build awesome apps with WebRTC.</p>
+
+        <a href="mailto:howdy@simplewebrtc.com" class="button">Contact us for help with your project!</a>
+
+    </section>
+
+    <footer role="contentinfo">
+      <a href="http://andyet.com" target="_blank" title="Made by &amp;yet"></a>
+    </footer>
+  </div>
+
+  <script src="js/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+</body>
 </html>
